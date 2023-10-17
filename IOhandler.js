@@ -9,7 +9,7 @@
  */
 
 const AdmZip = require("adm-zip"),
-  fs = require("fs"),
+  fs = require("fs/promises"),
   PNG = require("pngjs").PNG,
   path = require("path"),
   zipFilePath = path.join(__dirname, "myfile.zip"),
@@ -40,7 +40,17 @@ const unzip = (pathIn, pathOut) => {
  * @param {string} path
  * @return {promise}
  */
-const readDir = (dir) => {};
+const readDir = (dir) => {
+  return fs.readdir(dir).then((files) => {
+    const imgPaths = [];
+    files.forEach((value, i) => {
+      if (path.extname(value) === ".png") {
+        imgPaths.push(path.resolve(value));
+      }
+    });
+    return imgPaths;
+  });
+};
 
 /**
  * Description: Read in png file by given pathIn,
@@ -51,10 +61,6 @@ const readDir = (dir) => {};
  * @return {promise}
  */
 const grayScale = (pathIn, pathOut) => {};
-
-unzip(zipFilePath, pathUnzipped)
-  .then(() => console.log("Extraction operation complete"))
-  .catch((err) => console.log(err));
 
 module.exports = {
   unzip,
