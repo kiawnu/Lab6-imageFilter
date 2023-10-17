@@ -13,11 +13,12 @@ const { unzip, readDir, grayScale } = require("./IOhandler");
 const zipFilePath = path.join(__dirname, "myfile.zip");
 const pathUnzipped = path.join(__dirname, "unzipped");
 const pathProcessed = path.join(__dirname, "grayscaled");
-const AdmZip = require("adm-zip");
-const fs = require("fs");
 
 unzip(zipFilePath, pathUnzipped)
   .then(() => console.log("Extraction operation complete"))
   .then(() => readDir(pathUnzipped))
-  .then((imgPaths) => console.log(imgPaths))
+  .then((imgPaths) => {
+    return grayScale(imgPaths, pathProcessed);
+  })
+  .then((msg) => console.log(msg))
   .catch((err) => console.log(err));

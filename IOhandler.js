@@ -10,6 +10,7 @@
 
 const AdmZip = require("adm-zip"),
   fs = require("fs/promises"),
+  fsc = require("fs"),
   PNG = require("pngjs").PNG,
   path = require("path"),
   zipFilePath = path.join(__dirname, "myfile.zip"),
@@ -45,7 +46,7 @@ const readDir = (dir) => {
     const imgPaths = [];
     files.forEach((value, i) => {
       if (path.extname(value) === ".png") {
-        imgPaths.push(path.resolve(value));
+        imgPaths.push(path.resolve("unzipped", value));
       }
     });
     return imgPaths;
@@ -60,7 +61,41 @@ const readDir = (dir) => {
  * @param {string} pathProcessed
  * @return {promise}
  */
-const grayScale = (pathIn, pathOut) => {};
+const grayScale = (pathIn, pathOut) => {
+  return new Promise((res, rej) => {
+    for (let i = 0; i < pathIn.length; i++) {
+      const png = new PNG({ filterType: 4 });
+      fsc
+        .createReadStream(pathIn[i])
+        .pipe(png)
+        .on("parsed", () => {
+          for (var y = 0; y < png.height; y++) {
+            for (var x = 0; x < png.width; x++) {
+              var idx = (png.width * y + x) << 2;
+
+              const avgGray =
+                (png.data[idx] + png.data[idx + 1] + png.data[idx + 2]) / 3;
+
+              // gray it out
+              png.data[idx] = avgGray;
+              png.data[idx + 1] = avgGray;
+              png.data[idx + 2] = avgGray;
+            }
+          }
+
+          png
+            .pack()
+            .pipe(
+              fsc.createWriteStream(`${pathOut}/${path.basename(pathIn[i])}`)
+            );
+          res("imgs grayscaled");
+        })
+        .on("error", (err) => {
+          rej(err);
+        });
+    }
+  });
+};
 
 module.exports = {
   unzip,
